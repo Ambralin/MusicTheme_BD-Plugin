@@ -3,7 +3,7 @@
  * @author Ambralin
  * @authorLink https://github.com/ambralin
  * @description Sets background colors based on current spotify song playing
- * @version 0.0.1
+ * @version 1.0.0
  */
 
 module.exports = class SpotifyTheme {
@@ -56,6 +56,9 @@ module.exports = class SpotifyTheme {
                     document.head.appendChild(style);
                 });
             }
+        } else {
+            const removestyle = document.head.querySelector(".mystyles");
+            if (removestyle) { removestyle.remove(); }
         }
     };
 
