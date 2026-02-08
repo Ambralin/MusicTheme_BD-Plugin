@@ -3,7 +3,7 @@
  * @author Ambralin
  * @authorLink https://github.com/ambralin
  * @description Sets background colors based on the current song playing
- * @version 1.2.0
+ * @version 1.3.0
  */
 
 module.exports = class MusicTheme {
@@ -15,10 +15,34 @@ module.exports = class MusicTheme {
         this.currentSong = "nulltimestamp";
     }
 
+    getSettingsPanel() {
+        const functionSwap = {
+            id: "oldFunc",
+            name: "Old Color Function",
+            type: "switch",
+            value: this.mySettings["oldFunc"]
+        };
+
+        return BdApi.UI.buildSettingsPanel({
+            onChange: (_, id, value) => {
+                this.mySettings[id] = value;
+                BdApi.Data.save("MusicTheme", "settings", this.mySettings);
+                this.onPresenceChange(true);
+            },
+            settings: [functionSwap]
+        });
+    }
+
     start() {
+        const myDefaults = {
+            oldFunc: false
+        };
+
+        this.mySettings = Object.assign({}, myDefaults, BdApi.Data.load("MusicTheme", "settings"));
+
         if (!this.presenceStore) return;
         this.presenceStore.addChangeListener(this.onPresenceChange);
-        this.onPresenceChange();
+        this.onPresenceChange(true);
     }
 
     stop() {
@@ -28,13 +52,12 @@ module.exports = class MusicTheme {
         if (ourstyle) { ourstyle.remove(); }
     }
 
-    onPresenceChange = () => {
+    onPresenceChange = (forcechange) => {
         const presences = this.presenceStore.getActivities();
-        console.log(presences);
 
         const songpresence = presences.find(a => (a.name === "Spotify" || a.name === "YouTube Music") && a.type === 2);
         if (songpresence?.timestamps?.start && typeof songpresence.timestamps.start === "string") {
-            if(songpresence["timestamps"]["start"].slice(0, -3) != this.currentSong) {
+            if(songpresence["timestamps"]["start"].slice(0, -3) != this.currentSong || forcechange) {
                 this.currentSong = songpresence["timestamps"]["start"].slice(0, -3);
                 let imageUrl = "";
                 if( songpresence["name"] === "Spotify" ) {
@@ -42,38 +65,41 @@ module.exports = class MusicTheme {
                 } else {
                     imageUrl = "https://" + songpresence["assets"]["large_image"].split("/https/")[1];
                 }
-                //console.log(imageUrl);
-                this.averageColorFromUrl(imageUrl).then(color => {
-                    console.log(`spotifyColor - ${songpresence["details"]} | ${color}`);
-
-                    const [r, g, b] = color;
-                    const [h, s, l] = this.rgbToHsl(r, g, b);
-                    const style = document.createElement("style");
-                    style.classList = "mystyles";
-                    style.textContent = `
-                        .theme-darker, .theme-darker * {
-                            transition: background-color 1000ms ease-out !important;
-                            --background-base-low: ${this.hslToCss(h, s, l * 0.5)} !important;
-                            --background-base-lower: ${this.hslToCss(h, s, l * 0.3)} !important;
-                            --background-base-lowest: ${this.hslToCss(h, s, l * 0.2)} !important;
-                            --background-surface-high: ${this.hslToCss(h, s, l * 0.45)} !important;
-                            --chat-background-default: ${this.hslToCss(h, s, l * 0.45)} !important;
-                        }
-
-                        .theme-darker *:hover {
-                            transition: background-color 10ms ease-out !important;
-                        }
-                    `;
-                    const laststyle = document.head.querySelector(".mystyles");
-                    if (laststyle) { laststyle.remove(); }
-                    document.head.appendChild(style);
-                });
+                if(this.mySettings["oldFunc"]) {
+                    this.averageColorFromUrl(imageUrl).then(color => {this.updateTheme(color)});
+                } else {
+                    this.accentColorFromUrl(imageUrl).then(color => {this.updateTheme(color)});
+                }
             }
         } else {
             const removestyle = document.head.querySelector(".mystyles");
             if (removestyle) { removestyle.remove(); }
         }
     };
+
+    updateTheme(newColor) {
+        const [r, g, b] = newColor;
+        const [h, s, l] = this.rgbToHsl(r, g, b);
+        const style = document.createElement("style");
+        style.classList = "mystyles";
+        style.textContent = `
+            .theme-darker, .theme-darker * {
+                transition: background-color 1000ms ease-out !important;
+                --background-base-low: ${this.hslToCss(h, s, l * 0.5)} !important;
+                --background-base-lower: ${this.hslToCss(h, s, l * 0.3)} !important;
+                --background-base-lowest: ${this.hslToCss(h, s, l * 0.2)} !important;
+                --background-surface-high: ${this.hslToCss(h, s, l * 0.45)} !important;
+                --chat-background-default: ${this.hslToCss(h, s, l * 0.45)} !important;
+            }
+
+            .theme-darker *:hover {
+                transition: background-color 10ms ease-out !important;
+            }
+        `;
+        const laststyle = document.head.querySelector(".mystyles");
+        if (laststyle) { laststyle.remove(); }
+        document.head.appendChild(style);
+    }
 
     async averageColorFromUrl(url) {
         const img = new Image();
@@ -103,6 +129,55 @@ module.exports = class MusicTheme {
                 b = Math.round(b / pixels);
 
                 resolve([r, g, b]);
+            };
+
+            img.onerror = () => reject(new Error("Image load failed"));
+        });
+    }
+
+    async accentColorFromUrl(url) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = url;
+
+        return new Promise((resolve, reject) => {
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+
+                const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+                let r = 0, g = 0, b = 0, count = 0;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const rr = data[i];
+                    const gg = data[i + 1];
+                    const bb = data[i + 2];
+
+                    const [_, s, l] = this.rgbToHsl(rr, gg, bb);
+
+                    if (s < 15) continue;        // low saturation = gray
+                    if (l < 10 || l > 350) continue; // near black / white
+
+                    r += rr;
+                    g += gg;
+                    b += bb;
+                    count++;
+                }
+
+                if (count === 0) {
+                    resolve([0, 0, 0]);
+                    return;
+                }
+
+                resolve([
+                    Math.round(r / count),
+                    Math.round(g / count),
+                    Math.round(b / count)
+                ]);
             };
 
             img.onerror = () => reject(new Error("Image load failed"));
