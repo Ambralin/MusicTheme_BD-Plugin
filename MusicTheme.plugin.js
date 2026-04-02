@@ -6,7 +6,7 @@
  * @version 1.5.0
  * @donate paypal.me/dzelmanovic
  * @source https://github.com/Ambralin/MusicTheme_BD-Plugin/
- * @updateUrl https://github.com/Ambralin/MusicTheme_BD-Plugin/MusicTheme.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/Ambralin/MusicTheme_BD-Plugin/refs/heads/main/MusicTheme.plugin.js
  */
 
 const {Webpack, Patcher, Utils} = new BdApi("MusicTheme")
