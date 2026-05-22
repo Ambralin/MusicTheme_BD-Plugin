@@ -2,11 +2,10 @@
  * @name MusicTheme
  * @author Ambralin & kaan
  * @authorLink https://github.com/ambralin
- * @description Sets background colors based on the current song playing (huge thanks to kaan for optimizing presence implementation)
- * @version 1.5.0
- * @donate paypal.me/dzelmanovic
+ * @description Sets background colors based on the current song playing (huge thanks to kaan for optimizing presence implementation) !!!DOESNT WORK WITH CUSTOM NITRO THEMES!!!
+ * @version 1.6.0
  * @source https://github.com/Ambralin/MusicTheme_BD-Plugin/
- * @updateUrl https://raw.githubusercontent.com/Ambralin/MusicTheme_BD-Plugin/refs/heads/main/MusicTheme.plugin.js
+ * @updateUrl https://github.com/Ambralin/MusicTheme_BD-Plugin/MusicTheme.plugin.js
  */
 
 const {Webpack, Patcher, Utils} = new BdApi("MusicTheme")
@@ -67,7 +66,13 @@ module.exports = class MusicTheme {
     updateTheme([r, g, b]) {
         const [h, s, l] = this.rgbToHsl(r, g, b);
         BdApi.DOM.addStyle("MusicTheme", `
-            .theme-darker, .theme-darker * {
+            .theme-dark, .theme-dark *, .theme-light, .theme-light * {
+                --neutral-72: var(--neutral-1);
+                --neutral-76: var(--neutral-4);
+                --neutral-43: var(--neutral-35);
+                --neutral-47: var(--neutral-16);
+                --neutral-41: var(--neutral-23);
+
                 transition: background-color 1000ms ease-out !important;
                 --background-base-low:      ${this.hslToCss(h, s, l * 0.50)} !important;
                 --background-base-lower:    ${this.hslToCss(h, s, l * 0.30)} !important;
@@ -76,7 +81,7 @@ module.exports = class MusicTheme {
                 --chat-background-default:  ${this.hslToCss(h, s, l * 0.45)} !important;
             }
 
-            .theme-darker *:hover { transition: background-color 10ms ease-out !important;
+            .theme-dark *:hover, .theme-light *:hover { transition: background-color 10ms ease-out !important; }
         `);
     }
 
