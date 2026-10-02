@@ -2,8 +2,8 @@
  * @name MusicTheme
  * @author Ambralin & kaan
  * @authorLink https://github.com/ambralin
- * @description Sets background colors based on the current song playing (huge thanks to kaan for optimizing presence implementation) !!!DOESNT WORK WITH CUSTOM NITRO THEMES!!!
- * @version 1.6.0
+ * @description Sets background colors based on the current song playing (huge thanks to kaan for optimizing presence implementation) DOESNT WORK WITH CUSTOM NITRO THEMES!!!
+ * @version 1.6.1
  * @source https://github.com/Ambralin/MusicTheme_BD-Plugin/
  * @updateUrl https://github.com/Ambralin/MusicTheme_BD-Plugin/MusicTheme.plugin.js
  */
@@ -74,11 +74,18 @@ module.exports = class MusicTheme {
                 --neutral-41: var(--neutral-23);
 
                 transition: background-color 1000ms ease-out !important;
-                --background-base-low:      ${this.hslToCss(h, s, l * 0.50)} !important;
-                --background-base-lower:    ${this.hslToCss(h, s, l * 0.30)} !important;
-                --background-base-lowest:   ${this.hslToCss(h, s, l * 0.20)} !important;
-                --background-surface-high:  ${this.hslToCss(h, s, l * 0.45)} !important;
-                --chat-background-default:  ${this.hslToCss(h, s, l * 0.45)} !important;
+                --background-base-low:                          ${this.hslToCss(h, s, l * 0.50)} !important;
+                --background-base-lower:                        ${this.hslToCss(h, s, l * 0.30)} !important;
+                --background-base-lowest:                       ${this.hslToCss(h, s, l * 0.20)} !important;
+                --background-surface-high:                      ${this.hslToCss(h, s, l * 0.45)} !important;
+                --background-surface-higher:                    ${this.hslToCss(h, s, l * 0.35)} !important;
+                --chat-background-default:                      ${this.hslToCss(h, s, l * 0.45)} !important;
+
+                --custom-status-bubble-background:              ${this.hslToCss(h, s, l * 0.55)} !important;
+                --user-profile-overlay-background:              ${this.hslToCss(h, s, l * 0.55)} !important;
+                --user-profile-overlay-background-hover:        ${this.hslToCss(h, s, l * 0.60)} !important;
+                --control-overlay-secondary-background-default: ${this.hslToCss(h, s, l * 0.35)} !important;
+                --control-overlay-secondary-background-active:  ${this.hslToCss(h, s, l * 0.40)} !important;
             }
 
             .theme-dark *:hover, .theme-light *:hover { transition: background-color 10ms ease-out !important; }
